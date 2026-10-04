@@ -1,0 +1,8 @@
+picos_work/
+*.zip
+*.joblib
+*.safetensors
+*.bin
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
