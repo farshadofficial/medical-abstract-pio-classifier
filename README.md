@@ -1,14 +1,18 @@
 # Medical Abstract PIO Classifier
 
-Fine-tune PubMedBERT to identify Population, Intervention and Outcome information
-in individual sentences, then evaluate how calibrated scores predict annotator
-agreement. Each sentence can receive multiple labels or none.
+Fine-tuning PubMedBERT to identify **Population (P)**, **Intervention (I)** and
+**Outcome (O)** information in individual sentences, with post-hoc calibration
+to predict crowd-annotator agreement. A sentence can receive multiple labels or none.
 
-## Recorded results
+[Open notebook in Colab](https://colab.research.google.com/github/farshadofficial/medical-abstract-pio-classifier/blob/main/picos_model_demo.ipynb)
+· [Download trained model](https://github.com/farshadofficial/medical-abstract-pio-classifier/releases/download/v0.1.0/picos_model_and_results.zip)
+· [Research release v0.1.0](https://github.com/farshadofficial/medical-abstract-pio-classifier/releases/tag/v0.1.0)
 
-The author completed the supplied run on a Colab A100 with Python 3.12.13. Validation
-micro-F1 selected the epoch-2 checkpoint (0.808655). Evaluation covers 2,075 sentences
-from 191 documents, separate from this run's training, validation and calibration.
+## Results
+
+Evaluation covers **2,075 sentences from 191 documents**, separate from this run's
+training, validation and calibration. Validation micro-F1 selected the epoch-2
+checkpoint: **0.8087**.
 
 | Element | Expert precision | Expert recall | Expert F1 | Raw agreement MSE | Isotonic agreement MSE |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -16,88 +20,99 @@ from 191 documents, separate from this run's training, validation and calibratio
 | Intervention | 0.9166 | 0.7993 | 0.8539 | 0.0730 | 0.0201 |
 | Outcome | 0.9320 | 0.7947 | 0.8578 | 0.1003 | 0.0227 |
 
-Expert metrics use raw scores at a fixed 0.5 threshold. Agreement MSE uses fractional
-crowd votes, a different target. Both logistic and isotonic calibration have positive
-95% document-bootstrap improvement intervals against raw scores for all three
-elements. These intervals do not compare the two calibrated methods with one another.
+Expert classification uses raw scores at **0.5**, compared with expert-majority
+sentence-presence labels; ties are negative. Agreement MSE uses fractional crowd
+votes. Calibrated agreement scores are not probabilities of classifier correctness.
 
-## Quick demo without retraining
+Both calibration methods reduced agreement MSE for all three elements, with positive
+95% document-bootstrap improvement intervals against raw scores. These intervals
+do not compare isotonic and logistic calibration directly.
 
-1. Open `picos_model_demo.ipynb` in Colab. Select runtime version **2026.07** for
-   the recorded Python environment. A GPU is optional for this small inference demo.
-2. Run the installation cell once. Restart the session and skip that cell afterward.
-3. Upload the separately supplied `picos_model_and_results.zip` to Colab's Files
-   panel (the working directory, normally `/content`). The ZIP contains the trained
-   classifier. It is not included in this small source bundle.
-4. Skip directly to **Example predictions on new text** and run its code cell.
-   It loads an existing saved model or extracts the model folder from the ZIP.
-5. Replace the synthetic example sentences with your own individual sentences.
+[Expert classification report](locked_test_expert_binary_metrics.csv)
+· [Agreement calibration report](locked_test_calibration_metrics.csv)
+· [Bootstrap comparisons](locked_test_bootstrap_mse_delta.csv)
 
-The quick-demo cell has no dependency on earlier dataset, training, calibration or
-export cells. It reports P/I/O labels, raw sigmoid scores, and input truncation.
-It does not split an entire abstract or highlight entity spans.
+![Recorded annotator-agreement reliability diagram](figures/agreement_reliability.png)
 
-Public checkpoint hosting is pending. Until a checkpoint download link is added,
-the quick demo requires the author-exported ZIP or a local model folder. The full
-training path can create a checkpoint independently.
+The preserved figure calls the logistic method “Platt.” Here it uses probability
+inputs, rather than logits as in conventional Platt scaling.
 
-## Full experiment
+## Try the saved model without retraining
 
-Run setup once, restart, and run from the imports cell downward. Use an A100 to match
-the recorded hardware; BF16 is enabled when the available GPU supports it. A CPU
-fallback is available but training time and numerical results can differ. The
-notebook downloads pinned revisions of the base model and EBM-NLP, checks document
-partition disjointness and class coverage, trains, fits calibrators, evaluates,
-exports results and runs the demo. Existing extracted dataset contents are not
-independently checksum-verified by the acquisition cell; use a fresh work directory
-for a clean full rerun.
+1. Download [picos_model_and_results.zip](https://github.com/farshadofficial/medical-abstract-pio-classifier/releases/download/v0.1.0/picos_model_and_results.zip).
+   Keep this filename and leave it zipped: approximately 407 MB (388 MiB).
+2. [Open the notebook in Colab](https://colab.research.google.com/github/farshadofficial/medical-abstract-pio-classifier/blob/main/picos_model_demo.ipynb).
+   Setup requires Python **3.11 or 3.12**. The recorded runtime was **2026.07**,
+   with Python **3.12.13**. A GPU is optional for inference.
+3. Run the installation cell once, then restart the session. Skip that cell after
+   restarting. **Setup still reports conflicts with Colab's preinstalled packages;
+   see the verification limits below.**
+4. Upload the model ZIP through Colab's Files panel into the working directory,
+   normally `/content`.
+5. Skip directly to **Example predictions on new text**, near the bottom, and run
+   its code cell. It loads the model without dataset downloads or retraining.
+6. Replace the example sentences with your own individual sentences.
 
-The recorded environment is listed in `requirements.txt` and `run_metadata.json`.
-The notebook setup also removes Colab's unused preinstalled vision/audio extensions
-to avoid their mismatch with pinned PyTorch. Calibrators target annotator agreement;
-the internal `platt` artifact key represents logistic regression on probabilities,
-not conventional Platt scaling on logits. The preserved plot uses the original
-legend name "Platt" for this probability-input variant.
+The demo reports labels, raw scores and truncation at **128 tokens**. Checked examples:
 
-## Contents
+| Sentence | Predicted labels |
+| --- | --- |
+| We enrolled 120 adults with type 2 diabetes. | P |
+| Participants received metformin or placebo for twelve weeks. | I |
+| The primary outcome was the change in HbA1c at twelve weeks. | O |
+| Metformin reduced HbA1c compared with placebo. | I, O |
 
-- `picos_model_demo.ipynb`: reviewed source with recorded training/evaluation/demo outputs.
-- `requirements.txt`: recorded core package versions and plotting dependency.
-- `locked_test_*metrics.csv`: recorded calibration and expert classification reports.
-- `locked_test_bootstrap_mse_delta.csv`: document-bootstrap comparisons against raw scores.
-- `document_splits.json`: exact assigned and retained document memberships.
-- `run_metadata.json`, `training_history.json`: environment and model-selection records.
-- `figures/agreement_reliability.png`: original recorded reliability diagram.
-- `REVIEW.md`: changes and verification limits.
+The release contains the classifier, tokenizer, agreement calibrators, metadata,
+checksums and upstream attribution. This demo uses raw classifier scores. Inputs
+are individual sentences; it does not split whole abstracts or highlight phrases.
 
-## Scope and interpretation
+## Training and evaluation
 
-This is sentence-level P/I/O classification. Independent Comparison and Study Design
-models, phrase extraction, reliable ambiguity detection and clinical utility are
-not demonstrated. Disagreement may reflect boundaries, missed mentions or annotator
-behavior rather than intrinsic semantic ambiguity. Unflagged text is not claimed
-to be certain. The exploratory ambiguity-flag cells were already removed from the
-uploaded notebook and are not in this deliverable.
+The notebook uses EBM-NLP annotations and fixed document-level partitions:
 
-Test documents were excluded from fitting and checkpoint selection in this run,
-but the corpus had already been studied in earlier project work. This is not a
-preregistered or previously unseen external evaluation. Changes to future model,
-threshold or calibration choices should be developed separately from final test
-reporting. Seeds alone do not guarantee identical results across environments.
+| Partition | Documents | Sentences |
+| --- | ---: | ---: |
+| Base training | 3,592 | 38,147 |
+| Base validation | 490 | 5,344 |
+| Calibration | 720 | 7,670 |
+| Test | 191 | 2,075 |
 
-The output tables were preserved from the author's completed run. The author
-subsequently ran setup, restarted Colab, uploaded the saved-model ZIP and executed
-only the independent quick demo. All four example labels and scores matched the
-original run to four decimal places. The full edited training path has not been
-rerun. Setup still reports conflicts with Colab's preinstalled packages: inference
-works in the tested session, but the environment is not globally consistent. A clean
-installation workflow remains a release task; the successful demo is a limited
-loading/inference check.
+Validation selects the checkpoint; calibration documents fit logistic and isotonic
+mappings. Test documents are excluded from fitting and checkpoint selection.
+Evaluation includes classification metrics, agreement MSE/MAE/ECE and **2,000
+document-bootstrap resamples**.
 
-## References
+For a full run, use a fresh work directory: existing extracted dataset contents
+are not independently checksum-verified. Run setup once, restart, then run from
+the imports cell downward. Recorded training used an **A100**, four epochs and seed
+**20260806**; BF16 is enabled when supported.
 
-- [EBM-NLP corpus paper, Nye et al. (ACL 2018)](https://aclanthology.org/P18-1019/)
-- [EBM-NLP repository](https://github.com/bepnye/EBM-NLP)
-- Base model: `microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext`, revision
+Recorded versions: [requirements.txt](requirements.txt) and
+[run_metadata.json](run_metadata.json). Exact partitions:
+[document_splits.json](document_splits.json). Checkpoint selection:
+[training_history.json](training_history.json).
+
+## Scope and verification
+
+Sentence-level P/I/O classification is demonstrated; Comparison/Study Design models,
+phrase extraction, reliable ambiguity detection and clinical utility are not.
+Heuristic sentence boundaries and truncation can affect results. Disagreement can
+reflect boundary choices or missed mentions as well as ambiguity.
+
+The test corpus had been examined in earlier project work; this is not an unseen
+external evaluation. Bootstrap intervals condition on the fitted model and
+calibrators, without retraining uncertainty. Seeds do not guarantee identical results.
+
+Recorded outputs come from a completed Colab run. After cleanup, the saved-model
+demo matched all four original labels and scores to four decimal places in a
+restarted session. **The edited full experiment has not been rerun end to end.
+Installation conflicts remain unresolved despite successful inference.**
+
+## References and provenance
+
+- [EBM-NLP corpus paper — Nye et al., ACL 2018](https://aclanthology.org/P18-1019/)
+- [EBM-NLP source repository](https://github.com/bepnye/EBM-NLP), revision
+  `43a4a1ea3f0a21cfb8820c040b843dfaf66192d0`.
+- [Microsoft PubMedBERT / BiomedBERT model card](https://huggingface.co/microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext).
+  The run used `microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext`, revision
   `e1354b7a3a09615f6aba48dfad4b7a613eef7062`.
-- Corpus revision: `43a4a1ea3f0a21cfb8820c040b843dfaf66192d0`.
