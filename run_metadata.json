@@ -1,0 +1,25 @@
+{
+  "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "packages": {
+    "torch": "2.6.0",
+    "transformers": "4.49.0",
+    "datasets": "3.2.0",
+    "accelerate": "1.2.1",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.5.3"
+  },
+  "label_order": [
+    "P",
+    "I",
+    "O"
+  ],
+  "seed": 20260806,
+  "max_length": 128,
+  "selected_checkpoint": "/content/picos_work/artifacts/base_model/checkpoint-4770",
+  "best_validation_micro_f1": 0.8086553770444348,
+  "bf16": true,
+  "calibration_target": "Fraction of annotators marking any sentence token",
+  "logistic_calibration_input": "Raw sigmoid probability"
+}
