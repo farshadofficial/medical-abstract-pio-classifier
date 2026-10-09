@@ -8,6 +8,16 @@ to predict crowd-annotator agreement. A sentence can receive multiple labels or 
 · [Download trained model](https://github.com/farshadofficial/medical-abstract-pio-classifier/releases/download/v0.1.0/picos_model_and_results.zip)
 · [Research release v0.1.0](https://github.com/farshadofficial/medical-abstract-pio-classifier/releases/tag/v0.1.0)
 
+
+## Motivation
+
+Medical research papers describe who took part in a study, which treatments were tested, and what results were measured. Finding these details across many papers can take time. I built this project to explore whether AI could help readers locate them in research summaries.
+
+People do not always agree about which sentences contain these details. I also wanted to investigate whether the model’s scores could reflect that disagreement.
+
+Through this project, I worked through the full process of preparing data, training a model, checking its results, and creating a demo that others can try.
+
+
 ## Results
 
 Evaluation covers **2,075 sentences from 191 documents**, separate from this run's
