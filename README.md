@@ -11,12 +11,18 @@ to predict crowd-annotator agreement. A sentence can receive multiple labels or 
 
 ## Motivation
 
-Medical research papers describe who took part in a study, which treatments were tested, and what results were measured. Finding these details across many papers can take time. I built this project to explore whether AI could help readers locate them in research summaries.
+A healthcare question rarely has its answer in a single research paper. Doctors and researchers conduct **systematic reviews** to bring together evidence from many studies. They often use the [PICO framework](https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-02) to organise their questions around four key details:
 
-People do not always agree about which sentences contain these details. I also wanted to investigate whether the model’s scores could reflect that disagreement.
+- **Population:** Who was studied?
+- **Intervention:** What treatment was tested?
+- **Comparison:** What was it compared with?
+- **Outcome:** What results were measured?
 
-Through this project, I worked through the full process of preparing data, training a model, checking its results, and creating a demo that others can try.
+Finding these details across many research papers takes time and careful reading. I built this project to explore whether AI could help with that process by identifying relevant sentences in medical abstracts—the short summaries at the beginning of research papers. The model focuses on three parts of the framework: **Population, Intervention, and Outcome**.
 
+People can also disagree about which sentences describe these details. I wanted to explore whether the model’s scores could reflect that disagreement, adding another layer to understanding its predictions.
+
+This project connects a real research task with practical AI development. I prepared the data, trained the model, evaluated its predictions, and created a demo that others can try. The longer-term aim is to help readers find relevant information more easily while keeping the original text available for their own judgment.
 
 ## Results
 
